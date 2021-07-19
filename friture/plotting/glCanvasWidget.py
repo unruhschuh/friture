@@ -1,5 +1,6 @@
 import sys
 import logging
+import math
 from ctypes import sizeof, c_float, c_void_p, c_uint
 
 from PyQt5 import QtCore, QtGui, Qt, QtWidgets
@@ -413,15 +414,26 @@ class GlCanvasWidget(QtWidgets.QOpenGLWidget):
             # schedule a repaint !
             self.update()
 
+    def freqToNote(self, frequency):
+        noteNames = ['A', 'A#','B','C', 'C#','D', 'D#','E','F', 'F#','G', 'G#']
+        if frequency > 0:
+            N = int(round(12 * math.log(frequency / 440.0) / math.log(2)))
+        else:
+            N = 0
+        noteNumber = int(N / len(noteNames)) + 4
+        noteName = "%s%d" % (noteNames[N % len(noteNames)], noteNumber)
+        return noteName
+
     def drawFreqMaxText(self, painter):
         if not self.showFreqLabel:
             return
 
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        noteName = self.freqToNote(self.fmax)
         if self.fmax < 2e2:
-            text = "%.1f Hz" % (self.fmax)
+            text = "%.1f Hz (%s)" % (self.fmax, noteName)
         else:
-            text = "%d Hz" % (np.rint(self.fmax))
+            text = "%d Hz (%s)" % (np.rint(self.fmax), noteName)
 
         xmax = self.horizontalScaleTransform.toScreen(self.fmax)
         if xmax == np.inf or xmax == -np.inf:
